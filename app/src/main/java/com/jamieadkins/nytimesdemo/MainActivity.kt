@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val reqId = StoreManager.generateId("News")
         val barcode = BarCode("Demo", reqId)
-        StoreManager.getData<ApiResponse>(barcode, ApiManager.getPulseliveApi().getArticles(),
+        val subscriber = StoreManager.getData<ApiResponse>(barcode, ApiManager.getPulseliveApi().getArticles(),
                 genericType<ApiResponse>())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, t?.message, Toast.LENGTH_LONG).show()
                     }
                 })
+        disposable.add(subscriber)
     }
 
     override fun onStop() {
