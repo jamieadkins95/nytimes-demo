@@ -52,6 +52,8 @@ object StoreManager {
         }
 
         return store.get(barCode)
+                // Issue is resolved when you include the following line.
+                // .doOnSuccess { Timber.d("get onSuccess") }
                 .concatWith(store.fetch(barCode))
                 .distinct()
 
