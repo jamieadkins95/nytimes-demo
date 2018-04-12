@@ -8,6 +8,7 @@ import com.nytimes.android.external.store3.base.impl.StoreBuilder
 import com.nytimes.android.external.store3.middleware.GsonParserFactory
 import com.google.gson.reflect.TypeToken
 import com.nytimes.android.external.fs3.SourcePersisterFactory
+import io.reactivex.Completable
 
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
@@ -52,9 +53,15 @@ object StoreManager {
         }
 
         return store.get(barCode)
-                // Issue is resolved when you include the following line.
-                // .doOnSuccess { Timber.d("get onSuccess") }
-                .concatWith(store.fetch(barCode))
+                // store.get() emits onComplete before all data has been propagated to the view.
+                // This means that the store.fetch starts, fails immediately, and then collapses the
+                // observable chain before cached data can be shown to the user.
+                // You can work round this by adding a 100ms delay to the fetch call to ensure that the
+                // view gets the cached data before you attempt your network call.
+                .concatWith(
+                        Completable.timer(100, TimeUnit.MILLISECONDS)
+                                .andThen(store.fetch(barCode))
+                )
                 .distinct()
 
     }
